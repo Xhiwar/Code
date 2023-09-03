@@ -1,0 +1,36 @@
+void setup() {
+  // Set up the CAT4016
+  DDRB |= (1 << PB0); // Set PB0 as output (data pin)
+  DDRD |= (1 << PD6); // Set PD6 as output (clock pin)
+  DDRD |= (1 << PD5); // Set PD5 as output (latch pin)
+  DDRD |= (1 << PD4); // Set PD4 as output (blank pin)
+
+  // Set the blank pin to high
+  PORTD |= (1 << PD4);
+
+  // Delay for 5 seconds
+  delay(5000);
+}
+
+void loop() {
+  // Set the blank pin to low
+  PORTD &= ~(1 << PD4);
+
+  // Select the digit that you want to display
+  byte digit = 0;
+
+  // Select the segments that you want to light up
+  byte segments = 0b11111110;
+
+  // Send the data to the CAT4016
+  shiftOut(PB0, PD6, MSBFIRST, digit);
+  shiftOut(PB0, PD6, MSBFIRST, segments);
+  PORTD |= (1 << PD5); // Latch the data
+  delay(1000);
+
+  // Clear the display
+  segments = 0;
+  shiftOut(PB0, PD6, MSBFIRST, segments);
+  PORTD |= (1 << PD5); // Latch the data
+  delay(1000);
+}
