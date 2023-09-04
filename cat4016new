@@ -1,0 +1,84 @@
+#include <avr/io.h>
+
+// Define the pins that the CAT4016 is connected to
+#define DATA_PIN PB0
+#define CLOCK_PIN PD6
+#define LATCH_PIN PD5
+#define BLANK_PIN PD4
+
+// Define the 16-bit data string to turn on all LEDs
+#define ALL_LEDS_ON 0xFFFF
+
+// Function to shift out a 16-bit data
+void shiftOut(uint16_t data) {
+  // Shift out the data one bit at a time
+  for (int i = 0; i < 16; i++) {
+    // Set the data pin to the current bit of the data
+    if (data & 1) {
+      digitalWrite(DATA_PIN, HIGH);
+    } else {
+      digitalWrite(DATA_PIN, LOW);
+    }
+
+    // Clock the data
+    digitalWrite(CLOCK_PIN, HIGH);
+    digitalWrite(CLOCK_PIN, LOW);
+
+    // Shift the data one bit to the right
+    data >>= 1;
+  }
+}
+
+// Function to send a command to the CAT4016
+void sendCommand(uint8_t command) {
+  // Set the blank pin low
+  digitalWrite(BLANK_PIN, LOW);
+
+  // Shift out the command
+  shiftOut(command);
+
+  // Latch the data
+  digitalWrite(LATCH_PIN, HIGH);
+  digitalWrite(LATCH_PIN, LOW);
+}
+
+// Function to set all LEDs on
+void setAllLedsOn() {
+  // Send the command to select the digit
+  sendCommand(0 | 0x80);
+
+  // Send the data for the segment
+  shiftOut(ALL_LEDS_ON);
+
+  // Latch the data
+  digitalWrite(LATCH_PIN, HIGH);
+  digitalWrite(LATCH_PIN, LOW);
+
+  // Send the command to select the digit
+  sendCommand(1 | 0x80);
+
+  // Send the data for the segment
+  shiftOut(ALL_LEDS_ON);
+
+  // Latch the data
+  digitalWrite(LATCH_PIN, HIGH);
+  digitalWrite(LATCH_PIN, LOW);
+}
+
+int main() {
+  // Set the pins as outputs
+  DDRB |= (1 << DATA_PIN);
+  DDRD |= (1 << CLOCK_PIN) | (1 << LATCH_PIN) | (1 << BLANK_PIN);
+
+  // Set the blank pin high
+  digitalWrite(BLANK_PIN, HIGH);
+
+  // Set all LEDs on
+  setAllLedsOn();
+
+  while (1) {
+    // Do nothing
+  }
+
+  return 0;
+}
